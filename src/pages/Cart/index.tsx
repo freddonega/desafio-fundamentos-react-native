@@ -47,16 +47,20 @@ const Cart: React.FC = () => {
   }
 
   const cartTotal = useMemo(() => {
-    const total = products.reduce((acc, current): number => {
-      return current.quantity * current.price + acc;
+    const total = products.reduce((accumulator, product) => {
+      const productSubTotal = product.price * product.quantity;
+
+      return accumulator + productSubTotal;
     }, 0);
 
     return formatValue(total);
   }, [products]);
 
   const totalItensInCart = useMemo(() => {
-    const total = products.reduce((acc, current): number => {
-      return current.quantity + acc;
+    const total = products.reduce((accumulator, product) => {
+      const productQuantity = product.quantity;
+
+      return accumulator + productQuantity;
     }, 0);
 
     return total;

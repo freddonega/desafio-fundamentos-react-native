@@ -14,6 +14,7 @@ export const ProductContainer = styled.View`
 `;
 
 export const ProductList = styled(FlatList)`
+  flex: 1;
   padding: 0 10px;
 `;
 
@@ -102,7 +103,7 @@ export const TotalProductsContainer = styled.View`
 export const TotalProductsText = styled.Text`
   font-size: 16px;
   color: #fff;
-  margin-left: 15px;
+  margin-left: 5px;
 
   flex: 1;
   font-weight: bold;

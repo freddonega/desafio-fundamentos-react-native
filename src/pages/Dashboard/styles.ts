@@ -31,12 +31,10 @@ export const Product = styled.View`
 export const ProductImage = styled.Image`
   height: 122px;
   width: 122px;
-  align-self: center;
 `;
 
 export const ProductTitle = styled.Text`
   font-size: 14px;
-  margin-top: 10px;
 `;
 
 export const PriceContainer = styled.View`

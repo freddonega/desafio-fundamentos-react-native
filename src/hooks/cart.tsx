@@ -8,7 +8,7 @@ import React, {
 
 import AsyncStorage from '@react-native-community/async-storage';
 
-interface Product {
+interface CartState {
   id: string;
   title: string;
   image_url: string;
@@ -17,8 +17,8 @@ interface Product {
 }
 
 interface CartContext {
-  products: Product[];
-  addToCart(item: Product): void;
+  products: CartState[];
+  addToCart(item: CartState): void;
   increment(id: string): void;
   decrement(id: string): void;
 }
@@ -26,83 +26,79 @@ interface CartContext {
 const CartContext = createContext<CartContext | null>(null);
 
 const CartProvider: React.FC = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [data, setData] = useState<CartState[]>([]);
 
   useEffect(() => {
     async function loadProducts(): Promise<void> {
-      const productsDB = await AsyncStorage.getItem('@GoMarketplace:products');
-      if (productsDB) {
-        setProducts(JSON.parse(productsDB));
+      const products = await AsyncStorage.getItem('@GoMarketplace:products');
+
+      if (products) {
+        setData([...JSON.parse(products)]);
       }
     }
 
     loadProducts();
   }, []);
 
-  const updateStorage = useCallback(async (): Promise<void> => {
-    await AsyncStorage.clear();
-    await AsyncStorage.setItem(
-      '@GoMarketplace:products',
-      JSON.stringify(products),
-    );
-  }, [products]);
-
-  useEffect(() => {
-    updateStorage();
-  }, [updateStorage]);
-
   const addToCart = useCallback(
     async product => {
-      const productPersisted = products.find(
-        productFind => productFind.id === product.id,
-      );
+      const productExists = data.find(p => p.id === product.id);
 
-      if (productPersisted) {
-        setProducts(
-          products.map(productMap => {
-            if (productMap.id === productPersisted.id) {
-              return { ...productMap, quantity: productMap.quantity + 1 };
-            }
-            return productMap;
-          }),
+      const quantity = productExists ? productExists.quantity + 1 : 1;
+
+      if (productExists) {
+        setData(
+          data.map(p => (p.id === product.id ? { ...product, quantity } : p)),
         );
       } else {
-        setProducts([...products, { ...product, quantity: 1 }]);
+        setData([...data, { ...product, quantity }]);
       }
-    },
 
-    [products],
+      await AsyncStorage.setItem(
+        '@GoMarketplace:products',
+        JSON.stringify(data),
+      );
+    },
+    [data],
   );
 
   const increment = useCallback(
     async id => {
-      setProducts(
-        products.map(product => {
-          if (product.id === id) {
-            return { ...product, quantity: product.quantity + 1 };
-          }
-          return product;
-        }),
+      setData(
+        data.map(product =>
+          product.id === id
+            ? { ...product, quantity: product.quantity + 1 }
+            : product,
+        ),
+      );
+
+      await AsyncStorage.setItem(
+        '@GoMarketplace:products',
+        JSON.stringify(data),
       );
     },
-    [products],
+    [data],
   );
 
   const decrement = useCallback(
     async id => {
-      await setProducts(
-        products
-          .map(product => {
-            if (product.id === id) {
-              return { ...product, quantity: product.quantity - 1 };
-            }
-            return product;
-          })
-          .filter(product => product.quantity >= 1),
+      setData(
+        data.map(product =>
+          product.id === id
+            ? { ...product, quantity: product.quantity - 1 }
+            : product,
+        ),
+      );
+
+      await AsyncStorage.setItem(
+        '@GoMarketplace:products',
+        JSON.stringify(data),
       );
     },
-    [products],
+    [data],
   );
+
+  const products = data;
 
   const value = React.useMemo(
     () => ({ addToCart, increment, decrement, products }),
